@@ -47,7 +47,7 @@ contract Campaign{
     function createRequest(string description, uint amount, address recipient) public managerRestricted payable{
         Request memory newRequest = Request({
             description : description,
-            amount : amount, 
+            amount : amount,
             recipient : recipient,
             complete : false,
             approvalsAccount : 0,

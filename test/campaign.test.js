@@ -5,18 +5,23 @@ const web3 = new Web3(ganache.provider());
 const { interface, bytecode } = require('../compile');
 
 let accounts;
-let inbox;
-const initialMessage = 'Hello mundo ;)';
+
+/*
+* Accounts:
+* 0 - Deployer
+* 1 - Manager
+* 2 - Contributor a
+* 3 - Contriburor b
+* 4 - Provider to be paid
+*/
 
 before( async () => {
 
-    
     accounts = await web3.eth.getAccounts();
-    console.log("Accounts->", accounts);
-    inbox = await new web3.eth.Contract(JSON.parse(interface))
+    campaign = await new web3.eth.Contract(JSON.parse(interface))
         .deploy({
             data: bytecode,
-            arguments: ['0xad4E12013e5925B5BFe07c2cf827eF6C4465A86F', '1']
+            arguments: [accounts[1], '1']
         })
         .send({
             from: accounts[0],
@@ -24,10 +29,23 @@ before( async () => {
         });
 });
 
-describe('InboxTest', () => {
+describe('Campaign', () => {
     it('Deploy the contract', () => {
-        assert.ok(inbox.options.address);
+        assert.ok(campaign.options.address);
     });
+
+    describe('Become approver', () => {
+        it('Can\'t become approver: no ether sent', async () => {
+            assert.throws((campaign) => {campaign.methods.contribute().send({from : accounts[2]})});
+        });
+        it('Become approver', async () => {
+            await campaign.methods.contribute().send({from : accounts[2], value: 1});
+            const approversCount = await campaign.methods.approversCount().call();
+            assert.equal(approversCount, 1);
+        });
+    });
+
+    
 
     // it('Has a default message', async () => {
     //     const message = await inbox.methods.getMessage().call();
