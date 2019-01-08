@@ -29,6 +29,11 @@ contract Campaign{
         require(approvers[msg.sender], "You shall be a contributor to execute this function.");
         _;
     }
+
+    modifier requestRestrictions(uint amount){
+        // require(amount > 0, "The amount should be greater than zero.");
+        _;
+    }
     
     constructor(address _manager, uint _minimunContr) public{
         deployer = msg.sender;
@@ -44,7 +49,7 @@ contract Campaign{
         approversCount++;
     }
     
-    function createRequest(string description, uint amount, address recipient) public managerRestricted payable{
+    function createRequest(string description, uint amount, address recipient) public managerRestricted requestRestrictions(amount) payable{
         Request memory newRequest = Request({
             description : description,
             amount : amount,
