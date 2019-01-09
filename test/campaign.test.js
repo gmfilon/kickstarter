@@ -13,6 +13,7 @@ let accounts;
 * 2 - Contributor a
 * 3 - Contriburor b
 * 4 - Provider to be paid
+* 5 - Contributor c
 */
 
 before( async () => {
@@ -25,7 +26,7 @@ before( async () => {
         })
         .send({
             from: accounts[0],
-            gas: '1000000'
+            gas: '1100000'
         });
 });
 
@@ -48,39 +49,22 @@ describe('Campaign', () => {
     });
 
     describe('Create request', () => {
-        /*
-        * no se pueden testear por un problema en la estimación de gas de ganache cli
-        */
-        // it('Wrong amount', async () => {
-        //     assert.throws((campaign) => {campaign.methods.createRequest().send(
-        //         {
-        //             from : accounts[1], 
-        //             arguments: [
-        //                 "", 
-        //                 0, 
-        //                 accounts[2]
-        //             ]
-        //         })});
-        // });
-        // it('Wrong address', async () => {
-        //     assert.throws((campaign) => {campaign.methods.createRequest().send(
-        //         {
-        //             from : accounts[1], 
-        //             arguments: [
-        //                 "", 
-        //                 1, 
-        //                 0x0
-        //             ]
-        //         })});
-        // });
+        it('Wrong amount', async () => {
+            assert.throws((campaign) => {campaign.methods.createRequest("Descripcion", 0, accounts[4]).send(
+                {
+                    from : accounts[1],
+                    gas: 1000000
+                })});
+        });
         it('Not manager', async () => {
             assert.throws((campaign) => {campaign.methods.createRequest("Descripcion", 1, accounts[4]).send(
                 {
-                    from : accounts[2]
+                    from : accounts[2],
+                    gas: 1000000
                 })});
         });
         it('Creation successful', async () => {
-            await campaign.methods.createRequest("Descripcion", 1, accounts[1]).send(
+            await campaign.methods.createRequest("Descripcion", 4, accounts[4]).send(
                 {
                     from : accounts[1], 
                     value: 1000,
@@ -92,16 +76,42 @@ describe('Campaign', () => {
         });
     });
 
-    
+    describe('Approve request', () => {
+        it('Can\'t approve: not a contributor', async () => {
+            assert.throws((campaign) => {campaign.methods.approveRequest(0).send({from : accounts[1]})});
+        });
+        it('Approved succesfully', async () => {
+            await campaign.methods.approveRequest(0).send({from : accounts[2]});
+            const request = await campaign.methods.viewRequest(0).call();
+            assert.equal(request[1], 1);
+        });
+        it('Can\'t approve: contributor already voted', async () => {
+            assert.throws((campaign) => {campaign.methods.approveRequest(0).send({from : accounts[2]})});
+        });
+    });
 
-    // it('Has a default message', async () => {
-    //     const message = await inbox.methods.getMessage().call();
-    //     assert.equal(message, 'Hello mundo ;)');
-    // });
-
-    // it('Can change the message', async () => {
-    //     await inbox.methods.setMessage('All good').send({from : accounts[0]});
-    //     const message = await inbox.methods.getMessage().call();
-    //     assert.equal(message, 'All good');
-    // });
+    describe('Finalize request', () => {
+        describe('Can\'t finalize', () => {
+            it('Not manager', async () => {
+                assert.throws((campaign) => {campaign.methods.finalizeRequest(0).send({from : accounts[2]})});
+            });
+            it('Not enough ether', async () => {
+                assert.throws((campaign) => {campaign.methods.finalizeRequest(0).send({from : accounts[1]})});
+            });
+            it('No majority', async () => {
+                await campaign.methods.contribute().send({from : accounts[3], value: 1});
+                await campaign.methods.contribute().send({from : accounts[5], value: 5});
+                assert.throws((campaign) => {campaign.methods.finalizeRequest(0).send({from : accounts[1]})});
+            });
+        });
+        it('Finalized succesfully', async () => {
+            const initialProviderBalance = await web3.eth.getBalance(accounts[4]);
+            await campaign.methods.finalizeRequest(0).send({from : accounts[1]});
+            const request = await campaign.methods.viewRequest(0).call();
+            assert.equal(parseInt(initialProviderBalance) + 4, await web3.eth.getBalance(accounts[4]));
+        });
+        it('Already paid', async () => {
+            assert.throws((campaign) => {campaign.methods.finalizeRequest(0).send({from : accounts[1]})});
+        });
+    });
 });
