@@ -31,7 +31,7 @@ contract Campaign{
     }
 
     modifier requestRestrictions(uint amount){
-        // require(amount > 0, "The amount should be greater than zero.");
+        require(amount > 0, "The amount should be greater than zero.");
         _;
     }
     
@@ -49,7 +49,8 @@ contract Campaign{
         approversCount++;
     }
     
-    function createRequest(string description, uint amount, address recipient) public managerRestricted requestRestrictions(amount) payable{
+    function createRequest(
+        string description, uint amount, address recipient) public managerRestricted requestRestrictions(amount) payable{
         Request memory newRequest = Request({
             description : description,
             amount : amount,
@@ -72,7 +73,7 @@ contract Campaign{
     
     function viewRequest(uint requestNumber) public view returns(string, uint){
         Request storage r = requests[requestNumber];
-        return (r.description, r.amount);
+        return (r.description, r.approvalsAccount);
     }
     
     function hasRequestMajority(uint alreadyVoted) private view returns(bool) {
