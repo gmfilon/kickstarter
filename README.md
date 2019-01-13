@@ -29,6 +29,14 @@ The deploy takes two parameters:
 * _finalizeRequest(uint requestNumber): void_: Method to pay off to the provider specified in the creation of the request. This method can only be executed by the manager. The paid will be done only if the request has the majority of the votes of the contributors at the moment that the last of them voted, and the contract shall have enough ether. If ether is not enough, the manager will be able to execute it again in the future. 
 * _getBalance()_: returns the balance of the smart contract. 
 
+#### GMF Token
+
+There is a token contract included in this proyect. It is only for experimental purposes as the business logic of the campaign contract does not required any token. 
+
+The token is called *GMF Token* (**GMF**), and it's deployed in the *Ropsten* testnet at the address ``0xae6113f71d8287fd66857fbf8dd954d8889fa8f9``. 
+You can "buy" it at a rate of *1 GMF = 1 ETH*. 
+
+
 #### Author
 Gonzalo Martín Filón
 gonzalofilon00@gmail.com
