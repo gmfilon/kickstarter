@@ -3,8 +3,8 @@ const Web3 = require('web3');
 const { interface, bytecode } = require('./compile');
 
 const provider = new HDWalletProvider(
-    'hill happy mammal regret heart pyramid dose draft chuckle useless window erosion',
-    'https://ropsten.infura.io/v3/181146e7bd40426e98eff052e53da784'
+    '',
+    ''
 );
 const web3 = new Web3(provider);
 
